@@ -1,19 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { ArrowLeft, Layers, Battery, Droplet, Zap, CheckCircle2, XCircle } from "lucide-react";
+import { getRandomQuestions, type QuizQuestion } from "../app/data/quizQuestions";
 
 interface LearnPageProps {
   onBack: () => void;
 }
 
 export function LearnPage({ onBack }: LearnPageProps) {
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [showResults, setShowResults] = useState(false);
+  const [quizKey, setQuizKey] = useState(0); // Key para forçar re-render
+
+  useEffect(() => {
+    setQuizQuestions(getRandomQuestions(3));
+  }, []);
 
   const educationalContent = [
     {
@@ -42,24 +49,6 @@ export function LearnPage({ onBack }: LearnPageProps) {
     }
   ];
 
-  const quizQuestions = [
-    {
-      question: "Qual componente da bateria libera elétrons durante a descarga?",
-      options: ["Cátodo", "Ânodo", "Eletrólito", "Circuito externo"],
-      correct: 1
-    },
-    {
-      question: "O que o eletrólito permite que passe entre os polos?",
-      options: ["Elétrons", "Prótons", "Íons", "Nêutrons"],
-      correct: 2
-    },
-    {
-      question: "Qual material é considerado mais sustentável para baterias?",
-      options: ["Cobalto", "Grafeno", "Níquel", "Chumbo"],
-      correct: 1
-    }
-  ];
-
   const handleAnswerSelect = (questionIndex: number, optionIndex: number) => {
     if (!showResults) {
       setQuizAnswers({ ...quizAnswers, [questionIndex]: optionIndex });
@@ -68,6 +57,16 @@ export function LearnPage({ onBack }: LearnPageProps) {
 
   const handleSubmitQuiz = () => {
     setShowResults(true);
+  };
+
+  const handleTryAgain = () => {
+    // Resetar estado do quiz
+    setQuizAnswers({});
+    setShowResults(false);
+    // Incrementar key para forçar animação
+    setQuizKey(prev => prev + 1);
+    // Carregar novas perguntas aleatórias
+    setQuizQuestions(getRandomQuestions(3));
   };
 
   const calculateScore = () => {
@@ -89,7 +88,6 @@ export function LearnPage({ onBack }: LearnPageProps) {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -107,7 +105,6 @@ export function LearnPage({ onBack }: LearnPageProps) {
           </p>
         </motion.div>
 
-        {/* Educational cards */}
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           {educationalContent.map((content, index) => (
             <motion.div
@@ -131,101 +128,110 @@ export function LearnPage({ onBack }: LearnPageProps) {
           ))}
         </div>
 
-        {/* Quiz section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.3, ease: "easeOut" }}
-          className="bg-card border border-border rounded-lg p-6 md:p-8"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Perguntas Rápidas</h2>
-            {showResults && (
-              <Badge className="px-4 py-2">
-                Pontuação: {calculateScore()}/{quizQuestions.length}
-              </Badge>
-            )}
-          </div>
-
-          <div className="space-y-8">
-            {quizQuestions.map((quiz, qIndex) => (
-              <div key={qIndex} className="space-y-3">
-                <p className="font-semibold">
-                  {qIndex + 1}. {quiz.question}
-                </p>
-                <div className="space-y-2">
-                  {quiz.options.map((option, oIndex) => {
-                    const isSelected = quizAnswers[qIndex] === oIndex;
-                    const isCorrect = quiz.correct === oIndex;
-                    const showCorrect = showResults && isCorrect;
-                    const showIncorrect = showResults && isSelected && !isCorrect;
-
-                    return (
-                      <button
-                        key={oIndex}
-                        onClick={() => handleAnswerSelect(qIndex, oIndex)}
-                        disabled={showResults}
-                        className={`
-                          w-full text-left p-4 rounded-lg border-2 transition-all
-                          ${isSelected && !showResults ? "border-primary bg-primary/5" : "border-border"}
-                          ${showCorrect ? "border-green-500 bg-green-50 dark:bg-green-950" : ""}
-                          ${showIncorrect ? "border-red-500 bg-red-50 dark:bg-red-950" : ""}
-                          ${!showResults ? "hover:border-primary/50 cursor-pointer" : "cursor-default"}
-                        `}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{option}</span>
-                          {showCorrect && <CheckCircle2 className="w-5 h-5 text-green-600" />}
-                          {showIncorrect && <XCircle className="w-5 h-5 text-red-600" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {!showResults && (
-            <div className="mt-8 flex justify-center">
-              <Button
-                onClick={handleSubmitQuiz}
-                disabled={Object.keys(quizAnswers).length !== quizQuestions.length}
-                size="lg"
-              >
-                Enviar Respostas
-              </Button>
+        {quizQuestions.length > 0 && (
+          <motion.div
+            key={quizKey} // Adiciona key para forçar re-render com animação
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.3, ease: "easeOut" }}
+            className="bg-card border border-border rounded-lg p-6 md:p-8"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Perguntas Rápidas</h2>
+              {showResults && (
+                <Badge className="px-4 py-2">
+                  Pontuação: {calculateScore()}/{quizQuestions.length}
+                </Badge>
+              )}
             </div>
-          )}
 
-          {showResults && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="mt-8 p-6 bg-primary/10 border border-primary/30 rounded-lg text-center"
-            >
-              <h3 className="font-semibold mb-2">
-                {calculateScore() === quizQuestions.length
-                  ? "🎉 Perfeito! Você acertou todas!"
-                  : calculateScore() >= quizQuestions.length / 2
-                  ? "👍 Bom trabalho! Continue aprendendo."
-                  : "📚 Continue estudando para melhorar."}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Você acertou {calculateScore()} de {quizQuestions.length} questões
-              </p>
-              <Button onClick={() => {
-                setQuizAnswers({});
-                setShowResults(false);
-              }}>
-                Tentar Novamente
-              </Button>
-            </motion.div>
-          )}
-        </motion.div>
+            <div className="space-y-8">
+              {quizQuestions.map((quiz, qIndex) => (
+                <div key={quiz.id} className="space-y-3">
+                  <p className="font-semibold">
+                    {qIndex + 1}. {quiz.question}
+                  </p>
+                  <div className="space-y-2">
+                    {quiz.options.map((option, oIndex) => {
+                      const isSelected = quizAnswers[qIndex] === oIndex;
+                      const isCorrect = quiz.correct === oIndex;
+                      const showCorrect = showResults && isCorrect;
+                      const showIncorrect = showResults && isSelected && !isCorrect;
 
-        {/* Additional info */}
+                      return (
+                        <button
+                          key={oIndex}
+                          onClick={() => handleAnswerSelect(qIndex, oIndex)}
+                          disabled={showResults}
+                          className={`
+                            w-full text-left p-4 rounded-lg border-2 transition-all
+                            ${isSelected && !showResults ? "border-primary bg-primary/5" : "border-border"}
+                            ${showCorrect ? "border-green-500 bg-green-50 dark:bg-green-950" : ""}
+                            ${showIncorrect ? "border-red-500 bg-red-50 dark:bg-red-950" : ""}
+                            ${!showResults ? "hover:border-primary/50 cursor-pointer" : "cursor-default"}
+                          `}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span>{option}</span>
+                            {showCorrect && <CheckCircle2 className="w-5 h-5 text-green-600" />}
+                            {showIncorrect && <XCircle className="w-5 h-5 text-red-600" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {showResults && quiz.explanation && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="mt-2 p-3 bg-muted/50 rounded-lg"
+                    >
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Explicação:</strong> {quiz.explanation}
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {!showResults && (
+              <div className="mt-8 flex justify-center">
+                <Button
+                  onClick={handleSubmitQuiz}
+                  disabled={Object.keys(quizAnswers).length !== quizQuestions.length}
+                  size="lg"
+                >
+                  Enviar Respostas
+                </Button>
+              </div>
+            )}
+
+            {showResults && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="mt-8 p-6 bg-primary/10 border border-primary/30 rounded-lg text-center"
+              >
+                <h3 className="font-semibold mb-2">
+                  {calculateScore() === quizQuestions.length
+                    ? "🎉 Perfeito! Você acertou todas!"
+                    : calculateScore() >= quizQuestions.length / 2
+                    ? "👍 Bom trabalho! Continue aprendendo."
+                    : "📚 Continue estudando para melhorar."}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Você acertou {calculateScore()} de {quizQuestions.length} questões
+                </p>
+                <Button onClick={handleTryAgain}>
+                  Tentar com Novas Perguntas
+                </Button>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

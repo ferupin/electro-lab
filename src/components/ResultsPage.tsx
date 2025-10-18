@@ -188,20 +188,53 @@ export function ResultsPage({ anode, cathode, electrolyte, onTryAgain }: Results
             className="bg-card border border-border rounded-lg p-6"
           >
             <h3 className="font-semibold mb-4">Análise de Desempenho</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="currentColor" className="text-border" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: "currentColor" }} className="text-foreground" />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "currentColor" }} className="text-muted-foreground" />
-                <Radar 
-                  name="Sua Bateria" 
-                  dataKey="value" 
-                  stroke="hsl(var(--primary))" 
-                  fill="hsl(var(--primary))" 
-                  fillOpacity={0.6} 
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+            <div className="w-full" style={{ height: "360px" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart 
+                  data={radarData}
+                  margin={{ top: 40, right: 40, bottom: 30, left: 40 }}
+                  cx="50%"
+                  cy="52%"
+                >
+                  <PolarGrid 
+                    stroke="#DDE6E3" 
+                    strokeWidth={1.5}
+                  />
+                  <PolarAngleAxis 
+                    dataKey="subject" 
+                    tick={{ 
+                      fill: "#0F1720",
+                      fontSize: 13,
+                      fontWeight: 600
+                    }}
+                    tickLine={false}
+                  />
+                  <PolarRadiusAxis 
+                    angle={90} 
+                    domain={[0, 100]} 
+                    tick={{ 
+                      fill: "#0F1720",
+                      fontSize: 10
+                    }}
+                    stroke="#DDE6E3"
+                    axisLine={false}
+                  />
+                  <Radar 
+                    name="Sua Bateria" 
+                    dataKey="value" 
+                    stroke="#00B388"
+                    strokeWidth={3}
+                    fill="#00B388" 
+                    fillOpacity={0.5}
+                    dot={{ 
+                      fill: "#0B7A5F", 
+                      strokeWidth: 2,
+                      r: 5 
+                    }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
           </motion.div>
 
           {/* Comparison chart */}
@@ -214,20 +247,70 @@ export function ResultsPage({ anode, cathode, electrolyte, onTryAgain }: Results
             <h3 className="font-semibold mb-4">Comparação com Bateria Comercial</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={comparisonData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" />
-                <XAxis dataKey="name" tick={{ fill: "currentColor" }} className="text-foreground" />
-                <YAxis tick={{ fill: "currentColor" }} className="text-muted-foreground" />
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke="#DDE6E3"
+                  vertical={false}
+                />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ 
+                    fill: "#0F1720",
+                    fontSize: 14,
+                    fontWeight: 600
+                  }}
+                  axisLine={{ stroke: "#DDE6E3" }}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tick={{ 
+                    fill: "#0F1720",
+                    fontSize: 12
+                  }}
+                  axisLine={{ stroke: "#DDE6E3" }}
+                  tickLine={false}
+                />
                 <RechartsTooltip 
                   contentStyle={{ 
-                    backgroundColor: "hsl(var(--card))", 
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "0.5rem"
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #DDE6E3",
+                    borderRadius: "0.5rem",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                  }}
+                  labelStyle={{
+                    color: "#0F1720",
+                    fontWeight: 600,
+                    marginBottom: "4px"
+                  }}
+                  itemStyle={{
+                    color: "#0F1720",
+                    fontSize: "14px"
                   }}
                 />
-                <Bar dataKey="energia" fill="hsl(var(--primary))" name="Densidade (Wh/kg)" />
-                <Bar dataKey="voltagem" fill="hsl(var(--secondary))" name="Voltagem (V × 50)" />
+                <Bar 
+                  dataKey="energia" 
+                  fill="#0B7A5F" 
+                  name="Densidade (Wh/kg)"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar 
+                  dataKey="voltagem" 
+                  fill="#FFB020" 
+                  name="Voltagem (V × 50)"
+                  radius={[8, 8, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
+            <div className="flex items-center justify-center gap-6 mt-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#0B7A5F]"></div>
+                <span className="text-xs text-muted-foreground">Densidade</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#FFB020]"></div>
+                <span className="text-xs text-muted-foreground">Voltagem</span>
+              </div>
+            </div>
             <p className="text-xs text-muted-foreground mt-2 text-center">
               Densidade de energia: {results.energyDensity} Wh/kg
             </p>
